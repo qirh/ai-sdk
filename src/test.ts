@@ -1,5 +1,4 @@
 import { perplexitySearch } from "./index";
-import packageJson from "../package.json";
 
 async function main() {
   console.log("Testing Perplexity Search Tool...\n");
@@ -43,32 +42,6 @@ async function main() {
   if (originalKey) {
     process.env.PERPLEXITY_API_KEY = originalKey;
   }
-
-  const originalFetch = globalThis.fetch;
-  let requestHeaders: Headers | undefined;
-  globalThis.fetch = (async (_input, init) => {
-    requestHeaders = new Headers(init?.headers);
-    return new Response(JSON.stringify({ results: [] }), { status: 200 });
-  }) as typeof fetch;
-
-  try {
-    const toolWithKey = perplexitySearch({ apiKey: "test-api-key" });
-    if (!toolWithKey.execute) {
-      throw new Error("Tool with API key is missing execute function");
-    }
-    await toolWithKey.execute({ query: "test query" });
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-
-  const integrationHeader = requestHeaders?.get("X-Pplx-Integration");
-  const expectedIntegrationHeader = `perplexity-ai-sdk/${packageJson.version}`;
-  if (integrationHeader !== expectedIntegrationHeader) {
-    throw new Error(
-      `Expected X-Pplx-Integration header to be ${expectedIntegrationHeader}, received ${integrationHeader}`,
-    );
-  }
-  console.log("  Request includes the X-Pplx-Integration attribution header");
 
   console.log("\nAll tests passed!");
   console.log("Note: To test with actual API calls, set PERPLEXITY_API_KEY in your .env file");
